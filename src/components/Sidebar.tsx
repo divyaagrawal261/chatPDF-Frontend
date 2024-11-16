@@ -3,7 +3,7 @@ import axios from "axios";
 import { FileText, ChevronLeft, ChevronRight, Trash2 } from "lucide-react"; // Import Trash2 (Dustbin) icon
 import { useNavigate } from "react-router-dom"; // For navigation
 
-const ITEMS_PER_PAGE = 10; // PDFs per page
+const ITEMS_PER_PAGE = 3; // PDFs per page
 const QUERIES_PER_PAGE = 5; // Queries per page
 
 export default function Sidebar() {
