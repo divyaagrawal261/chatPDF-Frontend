@@ -20,11 +20,11 @@ export default function QueryDetail() {
   }, [navigate]);
 
   return (
-    <div className="p-6">
+    <div className="p-6 md:max-w-[768px] sm:max-w-[90vw]">
       {queryData ? (
         <div>
           <h1 className="text-2xl font-semibold mb-4">Query: {queryData.query}</h1>
-          <div>
+          <div className="w-full">
             <h2 className="text-lg font-medium">Response:</h2>
             <pre className="bg-gray-100 p-4 rounded">{queryData.response}</pre>
           </div>

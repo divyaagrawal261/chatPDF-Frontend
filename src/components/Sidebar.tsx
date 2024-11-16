@@ -4,7 +4,6 @@ import { FileText, ChevronLeft, ChevronRight, Trash2 } from "lucide-react"; // I
 import { useNavigate } from "react-router-dom"; // For navigation
 
 const ITEMS_PER_PAGE = 3; // PDFs per page
-const QUERIES_PER_PAGE = 5; // Queries per page
 
 export default function Sidebar() {
   const [pdfs, setPdfs] = useState<{
@@ -58,10 +57,8 @@ export default function Sidebar() {
 
   const handleQueryPagination = async (pdfId: string, page: number) => {
     try {
-      const skip = (page - 1) * QUERIES_PER_PAGE;
 
       const response = await axios.get(`${import.meta.env.VITE_URL}/history/${pdfId}`, {
-        params: { skip, limit: QUERIES_PER_PAGE },
         headers: {
           "Content-Type": "application/json",
         },
@@ -192,38 +189,7 @@ export default function Sidebar() {
                     </ul>
                   )}
 
-                  {pdf.queries.length > QUERIES_PER_PAGE && (
-                    <div className="mt-4 flex justify-between">
-                      <button
-                        onClick={() =>
-                          handleQueryPagination(
-                            pdf.id,
-                            queryPagination[pdf.id]?.currentPage - 1
-                          )
-                        }
-                        disabled={queryPagination[pdf.id]?.currentPage === 1}
-                        className="text-gray-500 disabled:text-gray-300"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        Previous
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleQueryPagination(
-                            pdf.id,
-                            queryPagination[pdf.id]?.currentPage + 1
-                          )
-                        }
-                        disabled={queryPagination[pdf.id]?.currentPage ===
-                          Math.ceil(pdf.queries.length / QUERIES_PER_PAGE)}
-                        className="text-gray-500 disabled:text-gray-300"
-                      >
-                        Next
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
+                  </div>
               ))}
             </nav>
 
