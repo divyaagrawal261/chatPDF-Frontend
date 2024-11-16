@@ -26,7 +26,7 @@ export default function QueryDetail() {
           <h1 className="text-2xl font-semibold mb-4">Query: {queryData.query}</h1>
           <div className="w-full">
             <h2 className="text-lg font-medium">Response:</h2>
-            <pre className="bg-gray-100 p-4 rounded">{queryData.response}</pre>
+            <pre className="bg-gray-100 p-4 rounded md:max-w-[768px] sm:max-w-[90vw] text-wrap">{queryData.response}</pre>
           </div>
         </div>
       ) : (
