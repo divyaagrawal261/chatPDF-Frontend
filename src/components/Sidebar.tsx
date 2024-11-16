@@ -260,11 +260,14 @@ export default function Sidebar() {
         )}
       </div>
 
-      <Modal
-        open={modalData !== null}
-        onClose={() => setModalData(null)}
-        data={modalData}
-      />
+      {/* Only show the Modal if modalData is not null */}
+      {modalData && (
+        <Modal
+          open={modalData !== null}
+          onClose={() => setModalData(null)}
+          data={modalData}
+        />
+      )}
     </div>
   );
 }
