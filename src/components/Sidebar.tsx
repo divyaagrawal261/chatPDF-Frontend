@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FileText, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { FileText, ChevronLeft, ChevronRight, Trash2 } from "lucide-react"; // Import Trash2 (Dustbin) icon
 import { useNavigate } from "react-router-dom"; // For navigation
 
 const ITEMS_PER_PAGE = 10; // PDFs per page
@@ -148,12 +148,12 @@ export default function Sidebar() {
             <nav className="divide-y divide-gray-100">
               {currentItems.map((pdf, index) => (
                 <div key={startIndex + index} className="p-4 group relative">
-                  {/* Cross icon that appears on hover */}
+                  {/* Trashbin (Dustbin) icon that appears on hover */}
                   <button
                     onClick={() => handleDeletePdf(pdf.id)}
                     className="absolute top-2 right-2 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <X className="w-5 h-5" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
 
                   <div className="flex items-center gap-3 mb-2">
