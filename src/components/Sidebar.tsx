@@ -43,8 +43,8 @@ export default function Sidebar() {
 
         const pdfsData = pdfsResponse.data || [];
 
-        // Fetch the total queries for each PDF
-        const pdfsWithPagination = await Promise.all(
+        // Fetch the query history for each PDF
+        const pdfsWithQueryHistory = await Promise.all(
           pdfsData.map(async (pdf: { id: string; filename: string; created_at: string }) => {
             try {
               const historyResponse = await axios.get(`${import.meta.env.VITE_URL}/history/${pdf.id}`, {
@@ -60,7 +60,7 @@ export default function Sidebar() {
                 queryHistory: historyResponse.data.history || [],
               };
             } catch (error) {
-              console.error(`Error fetching history for PDF ${pdf.id}:`, error);
+              console.error(`Error fetching query history for PDF ${pdf.id}:`, error);
               return { ...pdf, totalQueries: 0, queryHistory: [] };
             }
           })
@@ -68,13 +68,13 @@ export default function Sidebar() {
 
         // Initialize pagination for each PDF
         const initialPagination: { [pdfId: string]: { currentPage: number; totalQueries: number } } =
-          pdfsWithPagination.reduce((acc, pdf) => {
+          pdfsWithQueryHistory.reduce((acc, pdf) => {
             acc[pdf.id] = { currentPage: 1, totalQueries: pdf.totalQueries };
             return acc;
           }, {});
 
         setQueryPagination(initialPagination);
-        setPdfs(pdfsWithPagination);
+        setPdfs(pdfsWithQueryHistory);
       } catch (error) {
         console.error("Error fetching PDFs or histories:", error);
       }
@@ -242,7 +242,10 @@ export default function Sidebar() {
                             queryPagination[pdf.id]?.currentPage + 1
                           )
                         }
-                        disabled={queryPagination[pdf.id]?.currentPage === Math.ceil(pdf.totalQueries / QUERIES_PER_PAGE)}
+                        disabled={
+                          queryPagination[pdf.id]?.currentPage ===
+                          Math.ceil(pdf.totalQueries / QUERIES_PER_PAGE)
+                        }
                         className="text-gray-500 disabled:text-gray-300"
                       >
                         Next
@@ -257,7 +260,6 @@ export default function Sidebar() {
         )}
       </div>
 
-      {/* Modal */}
       {modalData && (
         <Modal
           title={`Query Result for: "${modalData.query}"`}
@@ -273,44 +275,6 @@ export default function Sidebar() {
             <p className="text-sm text-gray-500">No results found.</p>
           )}
         </Modal>
-      )}
-
-      {totalPages > 1 && (
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="p-2 text-gray-500 hover:text-indigo-600 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`w-8 h-8 rounded-full text-sm font-medium transition-colors
-                    ${currentPage === page
-                      ? "bg-indigo-600 text-white"
-                      : "text-gray-500 hover:bg-gray-100"
-                    }`}
-                >
-                  {page}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="p-2 text-gray-500 hover:text-indigo-600 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );
