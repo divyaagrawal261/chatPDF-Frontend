@@ -28,7 +28,7 @@ function App() {
     }
 
     try {
-      const response = await fetch("/query", {
+      const response = await fetch(`${import.meta.env.VITE_URL}/query`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -38,9 +38,10 @@ function App() {
           query,
         }),
       });
-
+      console.log(response);
       const data = await response.json();
-      setResults(data.result || "No results found."); // Adjust to match response structure
+      console.log(data);
+      setResults(data.response || "No results found."); // Adjust to match response structure
 
       setHistory((prev) => [
         { query, timestamp: new Date().toLocaleString() },
