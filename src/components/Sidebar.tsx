@@ -13,7 +13,7 @@ export default function Sidebar() {
       filename: string;
       created_at: string;
       totalQueries: number;
-      queryHistory: Array<{ query: string; timestamp: string }>;
+      queryHistory: Array<{ id: string; query: string; response: string; timestamp: string }>;
     }>
   >([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,7 +24,7 @@ export default function Sidebar() {
     query: string;
     pdfId: string;
     filename: string;
-    results: any[] | null;
+    response: string | null;
   } | null>(null);
 
   const totalPages = Math.ceil(pdfs.length / ITEMS_PER_PAGE);
@@ -131,7 +131,7 @@ export default function Sidebar() {
         query,
         pdfId,
         filename,
-        results: response.data.results || [],
+        response: response.data.results ? response.data.results[0] : null, // Assuming response contains results
       });
     } catch (error) {
       console.error("Error fetching query results:", error);
@@ -139,7 +139,7 @@ export default function Sidebar() {
         query,
         pdfId,
         filename,
-        results: [],
+        response: null,
       });
     }
   };
@@ -202,8 +202,8 @@ export default function Sidebar() {
                     </p>
                   ) : (
                     <ul className="ml-7 space-y-2">
-                      {pdf.queryHistory.map((query, queryIndex) => (
-                        <li key={queryIndex}>
+                      {pdf.queryHistory.map((query) => (
+                        <li key={query.id}>
                           <button
                             onClick={() =>
                               handleQueryClick(query.query, pdf.id, pdf.filename)
@@ -242,10 +242,7 @@ export default function Sidebar() {
                             queryPagination[pdf.id]?.currentPage + 1
                           )
                         }
-                        disabled={
-                          queryPagination[pdf.id]?.currentPage ===
-                          Math.ceil(pdf.totalQueries / QUERIES_PER_PAGE)
-                        }
+                        disabled={queryPagination[pdf.id]?.currentPage === Math.ceil(pdf.totalQueries / QUERIES_PER_PAGE)}
                         className="text-gray-500 disabled:text-gray-300"
                       >
                         Next
@@ -270,17 +267,8 @@ export default function Sidebar() {
           <p className="mb-4 text-sm text-gray-700">
             <strong>File Name:</strong> {modalData.filename}
           </p>
-          {modalData.results && modalData.results.length > 0 ? (
-            <ul className="space-y-2">
-              {modalData.results.map((result, index) => (
-                <li
-                  key={index}
-                  className="p-2 border rounded bg-gray-100 text-gray-700"
-                >
-                  {result}
-                </li>
-              ))}
-            </ul>
+          {modalData.response ? (
+            <p className="p-2 border rounded bg-gray-100 text-gray-700">{modalData.response}</p>
           ) : (
             <p className="text-sm text-gray-500">No results found.</p>
           )}
