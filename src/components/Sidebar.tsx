@@ -85,13 +85,22 @@ export default function Sidebar() {
   };
 
   const handleDeletePdf = async (pdfId: string) => {
-    try {
-      await axios.delete(`${import.meta.env.VITE_URL}/pdfs/${pdfId}`);
-      setPdfs((prevPdfs) => prevPdfs.filter((pdf) => pdf.id !== pdfId));
-    } catch (error) {
-      console.error("Error deleting PDF:", error);
+    // Show confirmation dialog
+    const confirmDelete = window.confirm("Are you sure you want to delete this PDF?");
+    if (confirmDelete) {
+      try {
+        // Make the DELETE request to the backend
+        await axios.delete(`${import.meta.env.VITE_URL}/pdfs/${pdfId}`);
+        // Remove the deleted PDF from the state
+        setPdfs((prevPdfs) => prevPdfs.filter((pdf) => pdf.id !== pdfId));
+        alert("PDF deleted successfully");
+      } catch (error) {
+        console.error("Error deleting PDF:", error);
+        alert("There was an error deleting the PDF");
+      }
     }
   };
+  
 
   const handleQueryClick = (queryId: string, pdfId: string, filename: string) => {
     const pdf = pdfs.find((pdf) => pdf.id === pdfId);
