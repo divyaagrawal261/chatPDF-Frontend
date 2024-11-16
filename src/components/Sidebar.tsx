@@ -86,8 +86,6 @@ export default function Sidebar() {
     const pdf = pdfs.find((pdf) => pdf.id === pdfId);
     if (pdf) {
       const query = pdf.queries.find((query) => query.id === queryId);
-      if (query) {
-        // Save query and response to sessionStorage
         sessionStorage.setItem(
           "queryData",
           JSON.stringify({
@@ -97,9 +95,7 @@ export default function Sidebar() {
             filename: filename || "Untitled PDF",
           })
         );
-        // Navigate to the query-detail page
         navigate("/query-detail");
-      }
     }
   };
 
