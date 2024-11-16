@@ -59,7 +59,10 @@ export default function Sidebar() {
     setCurrentPage(page);
   };
 
-  const handleDeletePdf = async (pdfId: string) => {
+  const handleDeletePdf = async (pdfId: string, e: React.MouseEvent) => {
+    // Prevent event propagation so it doesn't trigger the query click
+    e.stopPropagation();
+
     // Show confirmation dialog
     const confirmDelete = window.confirm("Are you sure you want to delete this PDF?");
     if (confirmDelete) {
@@ -76,7 +79,10 @@ export default function Sidebar() {
     }
   };
 
-  const handleQueryClick = (queryId: string, pdfId: string, filename: string) => {
+  const handleQueryClick = (queryId: string, pdfId: string, filename: string, e: React.MouseEvent) => {
+    // Prevent event propagation if necessary
+    e.stopPropagation();
+
     const pdf = pdfs.find((pdf) => pdf.id === pdfId);
     if (pdf) {
       const query = pdf.queries.find((query) => query.id === queryId);
@@ -124,7 +130,7 @@ export default function Sidebar() {
                 <div key={index} className="p-4 group relative">
                   {/* Trash icon that appears on hover */}
                   <button
-                    onClick={() => handleDeletePdf(query.pdfId)}
+                    onClick={(e) => handleDeletePdf(query.pdfId, e)}
                     className="absolute top-2 right-2 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Trash2 className="w-5 h-5" />
@@ -133,7 +139,10 @@ export default function Sidebar() {
                   <div className="flex items-center gap-3 mb-2">
                     <FileText className="w-4 h-4 text-gray-400" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                      <p
+                        className="text-sm font-medium text-gray-900 line-clamp-2 cursor-pointer"
+                        onClick={(e) => handleQueryClick(query.id, query.pdfId, query.filename, e)}
+                      >
                         {query.query}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -145,7 +154,6 @@ export default function Sidebar() {
                     </div>
                   </div>
 
-                  <p className="text-gray-600 text-sm">{query.response}</p>
                 </div>
               ))}
             </nav>
