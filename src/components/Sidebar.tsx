@@ -10,10 +10,9 @@ export default function Sidebar() {
   const [pdfs, setPdfs] = useState<
     Array<{
       id: string;
-      filename: string;
+      title: string | null;
       created_at: string;
-      totalQueries: number;
-      queryHistory: Array<{ id: string; query: string; response: string; timestamp: string }>;
+      queries: Array<{ id: string; query: string; response: string; created_at: string }>;
     }>
   >([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,7 +34,7 @@ export default function Sidebar() {
   useEffect(() => {
     const fetchPdfs = async () => {
       try {
-        const pdfsResponse = await axios.get(`${import.meta.env.VITE_URL}/pdfs`, {
+        const pdfsResponse = await axios.get(`${import.meta.env.VITE_URL}/pdfs_with_queries`, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -43,38 +42,15 @@ export default function Sidebar() {
 
         const pdfsData = pdfsResponse.data || [];
 
-        // Fetch the query history for each PDF
-        const pdfsWithQueryHistory = await Promise.all(
-          pdfsData.map(async (pdf: { id: string; filename: string; created_at: string }) => {
-            try {
-              const historyResponse = await axios.get(`${import.meta.env.VITE_URL}/history/${pdf.id}`, {
-                params: { skip: 0, limit: QUERIES_PER_PAGE },
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              });
-
-              return {
-                ...pdf,
-                totalQueries: historyResponse.data.total || 0,
-                queryHistory: historyResponse.data.history || [],
-              };
-            } catch (error) {
-              console.error(`Error fetching query history for PDF ${pdf.id}:`, error);
-              return { ...pdf, totalQueries: 0, queryHistory: [] };
-            }
-          })
-        );
-
         // Initialize pagination for each PDF
         const initialPagination: { [pdfId: string]: { currentPage: number; totalQueries: number } } =
-          pdfsWithQueryHistory.reduce((acc, pdf) => {
-            acc[pdf.id] = { currentPage: 1, totalQueries: pdf.totalQueries };
+          pdfsData.reduce((acc, pdf) => {
+            acc[pdf.id] = { currentPage: 1, totalQueries: pdf.queries.length };
             return acc;
           }, {});
 
         setQueryPagination(initialPagination);
-        setPdfs(pdfsWithQueryHistory);
+        setPdfs(pdfsData);
       } catch (error) {
         console.error("Error fetching PDFs or histories:", error);
       }
@@ -101,7 +77,7 @@ export default function Sidebar() {
       setPdfs((prevPdfs) =>
         prevPdfs.map((pdf) =>
           pdf.id === pdfId
-            ? { ...pdf, queryHistory: response.data.history || [] }
+            ? { ...pdf, queries: response.data.history || [] }
             : pdf
         )
       );
@@ -188,7 +164,7 @@ export default function Sidebar() {
                     <FileText className="w-4 h-4 text-gray-400" />
                     <div>
                       <p className="text-sm font-medium text-gray-900 line-clamp-2">
-                        {pdf.filename}
+                        {pdf.title || "Untitled PDF"}
                       </p>
                       <time className="text-xs text-gray-500 mt-1 block">
                         {new Date(pdf.created_at).toLocaleString()}
@@ -196,31 +172,31 @@ export default function Sidebar() {
                     </div>
                   </div>
 
-                  {pdf.queryHistory.length === 0 ? (
+                  {pdf.queries.length === 0 ? (
                     <p className="text-gray-400 text-xs ml-7">
                       No queries for this PDF
                     </p>
                   ) : (
                     <ul className="ml-7 space-y-2">
-                      {pdf.queryHistory.map((query) => (
+                      {pdf.queries.map((query) => (
                         <li key={query.id}>
                           <button
                             onClick={() =>
-                              handleQueryClick(query.query, pdf.id, pdf.filename)
+                              handleQueryClick(query.query, pdf.id, pdf.title || "Untitled PDF")
                             }
                             className="text-left text-sm text-indigo-600 hover:underline"
                           >
                             {query.query}
                           </button>
                           <time className="block text-xs text-gray-500">
-                            {new Date(query.timestamp).toLocaleString()}
+                            {new Date(query.created_at).toLocaleString()}
                           </time>
                         </li>
                       ))}
                     </ul>
                   )}
 
-                  {pdf.totalQueries > QUERIES_PER_PAGE && (
+                  {pdf.queries.length > QUERIES_PER_PAGE && (
                     <div className="mt-4 flex justify-between">
                       <button
                         onClick={() =>
@@ -244,7 +220,7 @@ export default function Sidebar() {
                         }
                         disabled={
                           queryPagination[pdf.id]?.currentPage ===
-                          Math.ceil(pdf.totalQueries / QUERIES_PER_PAGE)
+                          Math.ceil(pdf.queries.length / QUERIES_PER_PAGE)
                         }
                         className="text-gray-500 disabled:text-gray-300"
                       >
@@ -256,26 +232,39 @@ export default function Sidebar() {
                 </div>
               ))}
             </nav>
+
+            {totalPages > 1 && (
+              <div className="p-4 flex justify-center gap-4">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="text-gray-500 disabled:text-gray-300"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </button>
+                <span className="text-sm text-gray-500">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="text-gray-500 disabled:text-gray-300"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
 
-      {modalData && (
-        <Modal
-          title={`Query Result for: "${modalData.query}"`}
-          onClose={() => setModalData(null)}
-          onDelete={() => handleDeletePdf(modalData.pdfId)}
-        >
-          <p className="mb-4 text-sm text-gray-700">
-            <strong>File Name:</strong> {modalData.filename}
-          </p>
-          {modalData.response ? (
-            <p className="p-2 border rounded bg-gray-100 text-gray-700">{modalData.response}</p>
-          ) : (
-            <p className="text-sm text-gray-500">No results found.</p>
-          )}
-        </Modal>
-      )}
+      <Modal
+        open={modalData !== null}
+        onClose={() => setModalData(null)}
+        data={modalData}
+      />
     </div>
   );
 }
