@@ -35,7 +35,7 @@ export default function Sidebar() {
   useEffect(() => {
     const fetchPdfs = async () => {
       try {
-        const pdfsResponse = await axios.get("/pdfs", {
+        const pdfsResponse = await axios.get(`${import.meta.env.VITE_URL}/pdfs`, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -47,7 +47,7 @@ export default function Sidebar() {
         const pdfsWithPagination = await Promise.all(
           pdfsData.map(async (pdf: { id: string; filename: string; created_at: string }) => {
             try {
-              const historyResponse = await axios.get(`/history/${pdf.id}`, {
+              const historyResponse = await axios.get(`${import.meta.env.VITE_URL}/history/${pdf.id}`, {
                 params: { skip: 0, limit: QUERIES_PER_PAGE },
                 headers: {
                   "Content-Type": "application/json",
@@ -91,7 +91,7 @@ export default function Sidebar() {
     try {
       const skip = (page - 1) * QUERIES_PER_PAGE;
 
-      const response = await axios.get(`/history/${pdfId}`, {
+      const response = await axios.get(`${import.meta.env.VITE_URL}/history/${pdfId}`, {
         params: { skip, limit: QUERIES_PER_PAGE },
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +118,7 @@ export default function Sidebar() {
   const handleQueryClick = async (query: string, pdfId: string, filename: string) => {
     try {
       const response = await axios.post(
-        "/query",
+        `${import.meta.env.VITE_URL}/query`,
         { query, pdf_id: pdfId },
         {
           headers: {
@@ -146,7 +146,7 @@ export default function Sidebar() {
 
   const handleDeletePdf = async (pdfId: string) => {
     try {
-      await axios.delete(`/pdfs/${pdfId}`, {
+      await axios.delete(`${import.meta.env.VITE_URL}/pdfs/${pdfId}`, {
         headers: {
           "Content-Type": "application/json",
         },
