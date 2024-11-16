@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useNavigate } from "react-router-dom"; // For navigation
 
 const ITEMS_PER_PAGE = 10; // PDFs per page
 const QUERIES_PER_PAGE = 5; // Queries per page
 
 export default function Sidebar() {
-  const [pdfs, setPdfs] = useState<
-    Array<{
-      id: string;
-      title: string | null;
-      created_at: string;
-      queries: Array<{ id: string; query: string; response: string; created_at: string }>;
-    }>
-  >([]);
+  const [pdfs, setPdfs] = useState<{
+    id: string;
+    title: string | null;
+    created_at: string;
+    queries: Array<{ id: string; query: string; response: string; created_at: string }>;
+  }[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [queryPagination, setQueryPagination] = useState<{
     [pdfId: string]: { currentPage: number; totalQueries: number };
@@ -86,7 +84,15 @@ export default function Sidebar() {
     }
   };
 
-  // Handle click on query to save data in sessionStorage and redirect
+  const handleDeletePdf = async (pdfId: string) => {
+    try {
+      await axios.delete(`${import.meta.env.VITE_URL}/pdfs/${pdfId}`);
+      setPdfs((prevPdfs) => prevPdfs.filter((pdf) => pdf.id !== pdfId));
+    } catch (error) {
+      console.error("Error deleting PDF:", error);
+    }
+  };
+
   const handleQueryClick = (queryId: string, pdfId: string, filename: string) => {
     const pdf = pdfs.find((pdf) => pdf.id === pdfId);
     if (pdf) {
@@ -132,7 +138,15 @@ export default function Sidebar() {
           <>
             <nav className="divide-y divide-gray-100">
               {currentItems.map((pdf, index) => (
-                <div key={startIndex + index} className="p-4">
+                <div key={startIndex + index} className="p-4 group relative">
+                  {/* Cross icon that appears on hover */}
+                  <button
+                    onClick={() => handleDeletePdf(pdf.id)}
+                    className="absolute top-2 right-2 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+
                   <div className="flex items-center gap-3 mb-2">
                     <FileText className="w-4 h-4 text-gray-400" />
                     <div>
@@ -191,10 +205,8 @@ export default function Sidebar() {
                             queryPagination[pdf.id]?.currentPage + 1
                           )
                         }
-                        disabled={
-                          queryPagination[pdf.id]?.currentPage ===
-                          Math.ceil(pdf.queries.length / QUERIES_PER_PAGE)
-                        }
+                        disabled={queryPagination[pdf.id]?.currentPage ===
+                          Math.ceil(pdf.queries.length / QUERIES_PER_PAGE)}
                         className="text-gray-500 disabled:text-gray-300"
                       >
                         Next
