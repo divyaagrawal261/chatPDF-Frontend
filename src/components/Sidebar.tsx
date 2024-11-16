@@ -97,7 +97,7 @@ export default function Sidebar() {
             filename: filename || "Untitled PDF",
           })
         );
-        // Redirect to new page
+        // Navigate to the query-detail page
         navigate("/query-detail");
       }
     }
@@ -153,7 +153,6 @@ export default function Sidebar() {
                       </time>
                     </div>
                   </div>
-
                 </div>
               ))}
             </nav>
