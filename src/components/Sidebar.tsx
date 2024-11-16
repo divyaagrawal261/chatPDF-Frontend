@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FileText, ChevronLeft, ChevronRight } from "lucide-react";
-import Modal from "./Modal";
+import { useNavigate } from "react-router-dom"; // For navigation
 
 const ITEMS_PER_PAGE = 10; // PDFs per page
 const QUERIES_PER_PAGE = 5; // Queries per page
@@ -19,12 +19,7 @@ export default function Sidebar() {
   const [queryPagination, setQueryPagination] = useState<{
     [pdfId: string]: { currentPage: number; totalQueries: number };
   }>({});
-  const [modalData, setModalData] = useState<{
-    query: string;
-    pdfId: string;
-    filename: string;
-    response: string | null;
-  } | null>(null);
+  const navigate = useNavigate(); // Hook for navigation
 
   const totalPages = Math.ceil(pdfs.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -91,47 +86,25 @@ export default function Sidebar() {
     }
   };
 
-  const handleQueryClick = async (query: string, pdfId: string, filename: string) => {
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_URL}/query`,
-        { query, pdf_id: pdfId },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      setModalData({
-        query,
-        pdfId,
-        filename,
-        response: response.data.results ? response.data.results[0] : null, // Assuming response contains results
-      });
-    } catch (error) {
-      console.error("Error fetching query results:", error);
-      setModalData({
-        query,
-        pdfId,
-        filename,
-        response: null,
-      });
-    }
-  };
-
-  const handleDeletePdf = async (pdfId: string) => {
-    try {
-      await axios.delete(`${import.meta.env.VITE_URL}/pdfs/${pdfId}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      // Reload the page or update the state
-      window.location.reload();
-    } catch (error) {
-      console.error("Error deleting PDF:", error);
+  // Handle click on query to save data in sessionStorage and redirect
+  const handleQueryClick = (queryId: string, pdfId: string, filename: string) => {
+    const pdf = pdfs.find((pdf) => pdf.id === pdfId);
+    if (pdf) {
+      const query = pdf.queries.find((query) => query.id === queryId);
+      if (query) {
+        // Save query and response to sessionStorage
+        sessionStorage.setItem(
+          "queryData",
+          JSON.stringify({
+            query: query.query,
+            response: query.response,
+            pdfId,
+            filename: filename || "Untitled PDF",
+          })
+        );
+        // Redirect to new page
+        navigate("/query-detail");
+      }
     }
   };
 
@@ -182,7 +155,7 @@ export default function Sidebar() {
                         <li key={query.id}>
                           <button
                             onClick={() =>
-                              handleQueryClick(query.query, pdf.id, pdf.title || "Untitled PDF")
+                              handleQueryClick(query.id, pdf.id, pdf.title || "Untitled PDF")
                             }
                             className="text-left text-sm text-indigo-600 hover:underline"
                           >
@@ -259,15 +232,6 @@ export default function Sidebar() {
           </>
         )}
       </div>
-
-      {/* Only show the Modal if modalData is not null */}
-      {modalData && (
-        <Modal
-          open={modalData !== null}
-          onClose={() => setModalData(null)}
-          data={modalData}
-        />
-      )}
     </div>
   );
 }
